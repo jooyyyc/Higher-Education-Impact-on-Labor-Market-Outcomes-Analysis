@@ -1,0 +1,138 @@
+---
+title: "201 Final Project: Post Secondary Education vs. Unemployment Rates"
+author: "Joy Chang, Claire Li, Joann Le, Songling Ngo"
+format: html
+editor: visual
+---
+
+```{r}
+knitr::include_graphics("~/Downloads/education_vs_unemployment.jpg")
+```
+
+# Post-Secondary Education vs. Unemployment Rates (United States, 2002-2022)
+
+## Introduction
+
+#### What major questions are you seeking to answer? 
+
+Historically, higher education has always been synonymous with better employment opportunities. However, in today's world—where the cost of post-secondary education continues to skyrocket and the job market appears increasingly desolate—many of us find ourselves asking, "Is it still worth it?". In this project, we aim to explore the correlation between post-secondary education and unemployment rates. Specifically, we examine how different types of post-secondary institutions and the various degrees students earn relate to unemployment trends. Our guiding questions are as follows:
+
+1.  What is the correlation between overall unemployment rates and 4-year enrollment rates?
+2.  Is there a difference between unemployment rates for bachelor’s degree holders and advanced degree holders?
+3.  Is there a difference between women’s unemployment rates for women’s bachelor degree holders and women’s advanced degree holders?
+
+#### What data are you using to answer those questions? (Include Original Data)
+
+The first dataset is titled ‘**College Enrollment Coverage in the US 2003-2022**’ and it covers college enrollment rates in various post secondary institutions in the U.S. between 2003-2022. It is about the percentages of students enrolling in the different types of colleges each year, with distinctions between 4-year, 2-year, public, private, and technical institutions. Web URL:[ https://nscresearchcenter.org/workingwithourdata/](https://nscresearchcenter.org/workingwithourdata/)  
+
+The second dataset is titled ‘**USA Unemployment Rates by Demographics & Race**’ and it covers unemployment rates from the twentieth century all the way until 2022, divided by demographics including age, sex, and ethnicity. The data is about yearly unemployment rates in the US, with distinctions between age groups starting at 16, along with the level of college or high school education they have achieved. It also goes into more detail about unemployment rates in specific groups—such as black men with bachelors’ degrees, etc. Web URL from Kaggle: <https://www.kaggle.com/datasets/asaniczka/unemployment-rates-by-demographics-1978-2023>  
+
+#### Where did the data come from, and what are possible ethical questions or limitations to consider with this dataset? 
+
+WHERE: The first data set (college enrollment rates) was collected by the National Student Clearinghouse, a US organization that documents student data and provides education reports yearly based on the data. ETHICALITIES: Several biases are present in the Clearwater dataset, such as the underrepresentation of certain institutional types or demographic groups. This stems from optional reporting by institutions and FERPA block rates, which can omit directory information for some students. Smaller institutions or those with limited resources may also be less represented. The reliance on historical classifications, like the Carnegie Classification, can perpetuate outdated categorizations, limiting the dataset’s ability to reflect modern institutional roles and demographics accurately.
+
+WHERE: The second data set (unemployment rates) was sourced from Kaggle, but originally was from the Economic Policy Institute’s State of Working America Data Library, along with from economic research conducted by the Federal Reserve Bank of St. Louis. The Economic Policy Institute does research on economic affairs based on US government data sources. ETHNICALITIES: The dataset’s reliance on the Current Population Survey (CPS) introduces potential biases due to missing data or nonresponse. Transient workers, undocumented immigrants, and other marginalized groups are less likely to be captured, which may underestimate unemployment rates for these populations. Smaller demographic groups, like Native Americans, face higher variability in representation, making their data less reliable. Additionally, nonresponse biases could skew results, especially in areas with lower survey participation, further complicating the accuracy of the dataset for underrepresented groups.
+
+## Data Visualizations and Analysis
+
+#### Question 1: What is the correlation between overall unemployment rates and 4-year enrollment rates? 
+
+```{r}
+#load libraries & data
+
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(dplyr)
+library(plotly)
+
+joined_df <- read.csv("~/Downloads/joined_df_2003-2021final.csv")
+
+
+#Cleaning data
+# Remove all non-numeric characters except for periods (decimal points)
+joined_df$Overall_1 <- gsub("[^0-9.]", "", joined_df$Overall_1)
+joined_df$All.4.year.Institutions_2 <- gsub("[^0-9.]", "", joined_df$All.4.year.Institutions_2)
+
+# Remove leading and trailing spaces
+joined_df$Overall_1 <- trimws(joined_df$Overall_1)
+joined_df$All.4.year.Institutions_2 <- trimws(joined_df$All.4.year.Institutions_2)
+
+# Convert to numeric
+joined_df$Overall_1 <- as.numeric(joined_df$Overall_1)
+joined_df$All.4.year.Institutions_2 <- as.numeric(joined_df$All.4.year.Institutions_2)
+
+# Add the new column for rates
+joined_df <- joined_df |> 
+  mutate(four_year_rates = (All.4.year.Institutions_2 / Overall_1) * 100)
+
+#Making the graph
+fouryear_vs_overall <- ggplot(data = joined_df, aes(x = four_year_rates, y = all, text = paste("Year:", Year))) + 
+  geom_point(size = 3, color = "skyblue", alpha = 1) + 
+  labs(title = "4-Year college enrollment rates vs overall unemployment rates 2003-2021",
+       x = "4-Year College enrollment rates (percent)",
+       y = "Overall unemployment rates (percent)") + 
+  theme_minimal()
+
+#Making it interactive with plotly
+
+#run w ggplotly, give u same graph but can now see information abt graph when hovering over
+ggplotly(fouryear_vs_overall)
+```
+
+Our scatter plot helps visualize the relationship between 4-Year college enrollment rates (out of overall college enrollment) and Overall unemployment rates, from 2003 to 2021. With its interactive hover feature, you can compare the values of each variable being tested--each dot represents the data of interest for a particular year, displaying changes throughout the years.
+The graph suggests a negative relationship between 4-Year College enrollment rates and overall unemployment rates. As enrollment rates increase, unemployment rates tend to decrease. Also, most of the data points appear to cluster around the middle to higher values of the x-axis (65% to 75%) and lower values of the y-axis (4% to 8%). This indicates that higher college enrollment rates may generally coincide with lower unemployment rates. The two outliers in 2020 and 2021 could potentially show the COVID-19 pandemic's impacts, breaking the general trend of higher enrollment and lower unemployment rates.
+
+#### Question 2: Is there a difference between unemployment rates for bachelor’s degree holders and advanced degree holders?
+
+```{r}
+joined_dataset <- read.csv("~/Downloads/joined_df_2003-2021final.csv")
+
+gg_scatter <- ggplot(data = joined_dataset, aes(x = bachelor.s_degree, y = advanced_degree,
+                                                text = paste("Year:", Year))) +
+  geom_point(size = 3, color = "hotpink", alpha = 0.6) +
+  labs(
+    title = "Bachelor's vs Advanced Degree Holders Unemployment Rate",
+    x = "Bachelor's Degree Holders",
+    y = "Advanced Degree Holders"
+  ) +
+  theme_minimal()
+
+ggplotly(gg_scatter)
+```
+
+This graph highlights a clear distinction in unemployment rates between bachelor's degree holders and advanced degree holders. The highest unemployment rate for advanced degree holders is notably lower at a 3.6%, compared to a 5.6% for bachelor's degree holders. Despite the difference in percentages, the data reveals a consistent positive correlation between the two groups, indicating that both experience similar fluctuations in unemployment rates per year which is likely influenced by overarching economic or social trends. It is also interesting to analyze the points at the top right of the scatterplot. This includes the years 2009-2013, and 2020-2021. These unemployment rates for both bachelor's and advanced degree holders is most likely affected by the lingering effects of the 2008 global financial crisis and the global pandemic in the latter years.
+
+#### Question 3: Is there a difference between women’s unemployment rates for women’s bachelor degree holders and women’s advanced degree holders?
+
+```{r}
+library(plotly)
+library(ggplot2)
+
+joined_dataset <- read.csv("~/Downloads/joined_df_2003-2021final.csv")
+women_scatter <- ggplot(data = joined_dataset, aes(x = women_bachelor.s_degree, y = women_advanced_degree, text = paste("Year:", Year))) +
+  geom_point(size = 3, color = "#d3a5f5", alpha = 1) +
+  labs(
+    title = "Women's Bachelor's vs Women's Advanced Degree Holders Unemployment Rate",
+    x = "Women's Bachelor's Degree Holders",
+    y = "Women's Advanced Degree Holders"
+  ) +
+  theme_minimal()
+
+ggplotly(women_scatter)
+
+```
+
+The relationship between women’s unemployment rates for bachelor’s and advanced degree holders from 2002-2022 is relatively strong, positive, and linear, indicating that economic fluctuations similarly impact both groups. However, women with advanced degrees consistently experience significantly lower unemployment rates—0.6-1.8% less than those with bachelor’s degrees—suggesting that advanced education provides greater job stability. The periods with the highest unemployment rates, 2009-2014 and 2020-2021, correspond to the 2008 financial crisis and the economic downturn during the COVID-19 pandemic. While women overall tend to have slightly higher unemployment rates than the general population for these educational groups, further statistical analysis would be needed to confirm this difference.
+
+## Conclusion
+
+Our analysis highlights several key takeaways regarding the correlation between educational attainment and unemployment rates, with a focus on trends over time.
+
+First, the relationship between overall 4-year college enrollment rates and unemployment rates reveals an inverse correlation. As 4-year enrollment rates increase, unemployment rates tend to decrease, suggesting that higher enrollment in these institutions could act as a defense against national economic downturns. However, outliers in 2020 and 2021 demonstrate the impact of unprecedented global events, such as the COVID-19 pandemic, on this relationship.
+
+Second, comparing bachelor’s degree holders to advanced degree holders, we observe that while unemployment rates for both groups follow similar patterns over time, individuals with advanced degrees consistently have lower unemployment rates. This consistent gap reinforces the notion that higher levels of education provide greater job stability, even during periods of economic uncertainty such as the 2008 financial crisis and the 2020 pandemic.
+
+Finally, focusing on women, the analysis highlights the advantage of advanced degrees in defending against unemployment. Women with advanced degrees show significantly lower unemployment rates than their counterparts with bachelor’s degrees by 0.6-1.8%. However, the data also reveals that women, regardless of degree level, generally experience slightly higher unemployment rates compared to overall rates for the same educational groups.
+
+Together, these insights emphasize the value of post secondary education in today's volatile job market and how unemployment rates impact different demographics and education levels.
